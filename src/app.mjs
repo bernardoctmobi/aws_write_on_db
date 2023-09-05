@@ -5,7 +5,6 @@ const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
 export const lambdaHandler = async (event) => {
-    console.log(event);
     let response;
 
     if (event.httpMethod === 'POST') {
@@ -29,27 +28,30 @@ function buildResponse(statusCode, body) {
 }
 
 async function insertItem(itemData) {
+    const details = itemData.Details ?? null;
     const params = {
         TableName: process.env.DYNAMODB_TABLE,
         Key: {
-            userId: itemData.userId,
+            PK: itemData.PK,
+            SK: itemData.SK
         },
-        UpdateExpression: 'SET #name = :name, #surname = :surname',
+        UpdateExpression: 'SET #details = :details',
         ExpressionAttributeNames: {
-            '#name': 'name',
-            '#surname': 'surname',
+            '#details': 'details'
         },
         ExpressionAttributeValues: {
-            ':name': itemData.name,
-            ':surname': itemData.surname,
+            ':details': details
         },
         ReturnValues: "ALL_NEW",
     }
+    console.log(params);
     try {
         const command = new UpdateCommand(params);
         const response = await docClient.send(command);
+        console.log(`Inserimento riuscito`);
         return buildResponse(200, response);
     } catch (error) {
+        console.log(`Inserimento fallito`);
         return buildResponse(500, error);
     }
 }

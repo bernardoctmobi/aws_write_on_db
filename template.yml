@@ -16,49 +16,50 @@ Resources:
         - x86_64
       Environment:
         Variables:
-          DYNAMODB_TABLE: !Ref UsersTable
+          DYNAMODB_TABLE: !Ref ProductsTable
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref UsersTable
+            TableName: !Ref ProductsTable
       Events:
         DbWrite:
           Type: Api
           Properties:
             Path: /write
             Method: post
-            RequestModel: !Ref InsertRequestModel
+            RequestModel: !Ref RequestModel
             RestApiId: !Ref ServerlessRestApi
 
-  InsertRequestModel:
+  RequestModel:
     Type: AWS::ApiGateway::Model
     Properties:
       RestApiId: !Ref ServerlessRestApi
       ContentType: application/json
-      Name: InsertRequestModel
+      Name: RequestModel
       Schema:
         $schema: http://json-schema.org/draft-04/schema#
         title: InsertRequestSchema
         type: object
         properties:
-          userId:
+          PK:
             type: string
-          name:
-            type: string
-          surname:
+          SK:
             type: string
         required:
-          - userId
-          - name
-          - surname
+          - PK
+          - SK
 
-  UsersTable:
+  ProductsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: RWUsersTable
+      TableName: ProductsTable
       AttributeDefinitions:
-        - AttributeName: userId
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
           AttributeType: S
       KeySchema:
-        - AttributeName: userId
+        - AttributeName: PK
           KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
       BillingMode: PAY_PER_REQUEST
